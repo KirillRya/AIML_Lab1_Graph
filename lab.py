@@ -1,4 +1,4 @@
-from queue import Queue
+from collections import deque
 import heapq
 
 dictionary = {}
@@ -55,15 +55,15 @@ def dfsmain(start, finish):
 def bfsmain(start, finish):
     cost = [0]
     visited = list()
-    queue = Queue()
-    queue.put(start)
+    queue = deque()
+    queue.append(start)
 
     def bfs(start, finish, cost):
-        while not queue.empty():
-            queue.get(0)
+        while not queue.__len__() == 0:
+            queue.popleft()
             if start == finish:
                 visited.append(finish)
-                queue.queue.clear()
+                queue.clear()
                 break
             if start in visited:
                 return
@@ -71,10 +71,10 @@ def bfsmain(start, finish):
             for j in distances.items():
                 if j[0][0] == start and not j[0][1] in visited:
                     cost[0] += j[1]
-                    queue.put(j[0][1])
+                    queue.append(j[0][1])
             while queue:
-                bfs(queue.queue[0], finish, cost)
-                if queue.qsize() == 0:
+                bfs(queue[0], finish, cost)
+                if queue.__len__() == 0:
                     break
         return visited
 
@@ -91,15 +91,15 @@ def ucsmain(start, finish):
     def ucs(start, finish, cost):
         while not h == []:
             start = heapq.heappop(h)
-            cost += start[0]
-            start = start[1]
-            visited.append(start)
-            if start == finish:
-                return visited, cost
-            for j in distances.items():
-                if j[0][0] == start and not j[0][1] in visited:
-                    heapq.heappush(h, (j[1], j[0][1]))
-
+            if not start[1] in visited:
+                cost_current_way = start[0]
+                start = start[1]
+                visited.append(start)
+                if start == finish:
+                    return visited, cost_current_way
+                for j in distances.items():
+                    if j[0][0] == start and not j[0][1] in visited:
+                        heapq.heappush(h, (j[1]+cost_current_way, j[0][1]))
     visited, cost = ucs(start, finish, cost)
     print("UCS:")
     printAll(start, finish, visited, cost)
@@ -107,25 +107,29 @@ def ucsmain(start, finish):
 
 def a_starmain(start, finish):
     f = []
-    h = {}
+    h = {start:0}
     g = [(0, start)]
     visited = []
     cost = 0
 
     def a_star(start, finish, cost):
+        heuristic = 0
         while not g == []:
             start = heapq.heappop(g)
-            cost += start[0]
+            cost += start[0]-h.get(start[1])
             start = start[1]
             visited.append(start)
             if start == finish:
                 return visited, cost
             for j in distances.items():
-                if j[0][0] == start and not j[0][1] in visited:
-                    heapq.heappush(f, (j[1], j[0][1]))
-                    h[j[0][1]] = takedistance((dictionary[j[0][1]])[0], dictionary[finish][0],
-                                              ((dictionary[j[0][1]])[1]), dictionary[finish][1])
-                    heapq.heappush(g, (h[j[0][1]] + j[1], j[0][1]))
+                current_litera = j[0][1]
+                if j[0][0] == start and not current_litera in visited:
+                    heapq.heappush(f, (j[1], current_litera))
+                    point_begin = dictionary[current_litera]
+                    point_end = dictionary[finish]
+                    heuristic = takedistance(point_begin[0], point_end[0], point_begin[1], point_end[1])
+                    h[current_litera] = heuristic
+                    heapq.heappush(g, (heuristic  + j[1], current_litera))
 
     visited, cost = a_star(start, finish, cost)
     print("A*:")
