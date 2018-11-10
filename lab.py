@@ -1,5 +1,6 @@
 from collections import deque
 import heapq
+import copy
 
 dictionary = {}
 distances = {}
@@ -112,14 +113,14 @@ def ucsmain(start, finish):
                 cost_current_way = start[0]
                 start = start[1]
                 visited.append(start)
-                visited_final.append(start)
                 if start == finish:
-                    return cost_current_way
+                    visited_final=copy.deepcopy(visited)
+                    return visited_final,cost_current_way
                 for next_point,current_cost in distances.get(start):
                     if not next_point in visited:
                         heapq.heappush(h, (current_cost + cost_current_way, next_point))
 
-    cost = ucs(start, finish, cost)
+    visited_final,cost = ucs(start, finish, cost)
     make_short_way(visited_final, finish)
     print("UCS:")
     printAll(start, finish, visited_final, visited, cost)
@@ -140,9 +141,9 @@ def a_starmain(start, finish):
             cost += start[0]-h.get(start[1])
             start = start[1]
             visited.append(start)
-            visited_final.append(start)
             if start == finish:
-                return cost
+                visited_final=copy.deepcopy(visited)
+                return visited_final,cost
             for next_point,current_cost in distances.get(start):
                 if not next_point in visited:
                     heapq.heappush(f, (current_cost, next_point))
@@ -152,7 +153,7 @@ def a_starmain(start, finish):
                     h[next_point] = heuristic
                     heapq.heappush(g, (heuristic  + current_cost, next_point))
 
-    cost = a_star(start, finish, cost)
+    visited_final,cost = a_star(start, finish, cost)
     make_short_way(visited_final, finish)
     print("A*:")
     printAll(start, finish, visited_final, visited, cost)
